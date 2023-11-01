@@ -1,9 +1,8 @@
 import axios from "axios";
 import Notiflix from 'notiflix';
-
 const API_KEY = "40348262-2107765f6b36d63fd98d1181e";
-axios.defaults.headers.common["x-api-key"] = API_KEY;
-
+const BASE_URL = 'https://pixabay.com/api/';
+// axios.defaults.headers.common["x-api-key"] = API_KEY;
 const elements = {
     form: document.querySelector('.search-form'),
     button: document.querySelector('.searchBtn'),
@@ -11,9 +10,7 @@ const elements = {
     cardsList: document.querySelector('.gallery'),
     loadMoreBtn: document.querySelector('.load-more')
 }
-
 elements.form.addEventListener('submit', handlerForm);
-
 function handlerForm(evt) {
     evt.preventDefault();
     const { searchQuery } = evt.currentTarget.elements;
@@ -32,17 +29,18 @@ function handlerForm(evt) {
         .catch((err) => console.log(err));
 }
 
-const BASE_URL = 'https://pixabay.com/api/';
-
 function fetchCards(searchQuery) {
-    const params = new URLSearchParams({
+    const params = {
         key: API_KEY,
         q: searchQuery,
         image_type: 'photo',
         orientation: 'horizontal',
-        safesearch: true
-    });
-    return axios.get(`${BASE_URL}?${params}`)
+        safesearch: true,
+        page: '1',
+        per_page: '40'
+    };
+    
+    return axios.get(`${BASE_URL}/?`, params)
         .then(resp => {
             return resp.data;
         });
