@@ -2,7 +2,7 @@ import axios from "axios";
 import Notiflix from 'notiflix';
 const API_KEY = "40348262-2107765f6b36d63fd98d1181e";
 const BASE_URL = 'https://pixabay.com/api/';
-// axios.defaults.headers.common["x-api-key"] = API_KEY;
+
 const elements = {
     form: document.querySelector('.search-form'),
     button: document.querySelector('.searchBtn'),
@@ -10,35 +10,18 @@ const elements = {
     cardsList: document.querySelector('.gallery'),
     loadMoreBtn: document.querySelector('.load-more')
 }
-elements.form.addEventListener('submit', handlerForm);
-function handlerForm(evt) {
-    evt.preventDefault();
-    const { searchQuery } = evt.currentTarget.elements;
-    fetchCards(searchQuery.value)
-        .then((data) => {
-            if (data.hits.length === 0) {
-                Notiflix.Notify.failure(
-                    'Sorry, there are no images matching your search query. Please try again.',
-                    { timeout: 5000, userIcon: false }
-                );
-            } else {
-                console.log(data);
-                elements.cardsList.innerHTML = createMarcup(data.hits);
-            }
-        })
-        .catch((err) => console.log(err));
-}
 
-function fetchCards(searchQuery) {
+function fetchCards(searchQuery, page=1) {
     const params = {
-        key: API_KEY,
-        q: searchQuery,
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        page: '1',
-        per_page: '40'
-    };
+        params: {
+            key: API_KEY,
+            q: searchQuery,
+            image_type: 'photo',
+            orientation: 'horizontal',
+            safesearch: true,
+            page: page,
+            per_page: '40',
+        }};
     
     return axios.get(`${BASE_URL}/?`, params)
         .then(resp => {
@@ -67,37 +50,65 @@ function createMarcup(arr) {
     </div>
     `).join('');
 }
-// function fetchCards( page=1) {
-//   const BASE_URL = 'https://pixabay.com/api/';
-//     const API_KEY = '40348262-2107765f6b36d63fd98d1181e';
-//     const params = new URLSearchParams({
-//         key: API_KEY,
-//         q: searchQuery,
-//         image_type: 'photo',
-//         orientation: 'horizontal',
-//         safesearch: true
-//     });
-//     return axios.get(`${BASE_URL}?${params}`)
-//            .then(resp => {
-//             return resp.data;
-//         });
-// }
-// fetchCards(page)
-//   .then((data => {
-//     elements.cardsList.insertAdjacentHTML('afterbegin', createMarcup(data.hits))
+
+elements.form.addEventListener('submit', handlerForm);
+function handlerForm(evt) {
+    evt.preventDefault();
+    const { searchQuery } = evt.currentTarget.elements;
+    fetchCards(searchQuery.value)
+        .then((data) => {
+            if (data.hits.length === 0) {
+                Notiflix.Notify.failure(
+                    'Sorry, there are no images matching your search query. Please try again.',
+                    { timeout: 5000, userIcon: false }
+                );
+            } else {
+                elements.cardsList.innerHTML = createMarcup(data.hits);
+                elements.loadMoreBtn.classList.remove('load-more-hidden');
+            }
+        })
+        .catch((err) => console.log(err));
+}
+
+let currentPage = 1;
+elements.loadMoreBtn.addEventListener('click', loadMoreCards);
+function loadMoreCards(evt) {
+    evt.preventDefault();
+    const searchQuery = elements.inputElement.value;
+    currentPage++;
+    fetchCards(searchQuery, currentPage)
+        .then((data) => {
+            if (data.hits.length === 0) {
+                elements.loadMoreBtn.classList.add('load-more-hidden');
+                return;
+            }
+            const newMarkup = createMarcup(data.hits);
+            elements.cardsList.insertAdjacentHTML('beforeend', newMarkup);
+            if (currentPage * 40 >= data.totalHits) {
+                elements.loadMoreBtn.classList.remove('load-more-hidden');
+            }
+            if (!currentPage * 40 >= data.totalHits) {
+                elements.loadMoreBtn.classList.add('load-more-hidden'); 
+                Notiflix.Notify.failure(
+                    "We're sorry, but you've reached the end of search results.",
+                    { timeout: 5000, userIcon: false }
+                );
+            }
+        })
+        .catch((err) => console.log(err));
+}
+
+
+
+
+// fetchCards(searchQuery, page)
+//   .then(data => {
+//     elements.cardsList.insertAdjacentHTML('afterbegin', createMarcup(data.hits));
 //     if (data.page < data.totalHits) {
-//     elements.loadMoreBtn.classList.remove('load-more-hidden')
-//   }
-// }))
-// .catch((err)=>console.log(err))
-
-
-
-
-
-
-
-
+//       elements.loadMoreBtn.classList.remove('load-more-hidden');
+//     }
+//   })
+//   .catch(err => console.log(err));
 
 
 
