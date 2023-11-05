@@ -73,13 +73,13 @@ elements.form.addEventListener('submit', async (evt) => {
     }
 });
 
-let currentPage = 1;
+let currentPage = 0; 
 elements.loadMoreBtn.addEventListener('click', async (evt) => {
     evt.preventDefault();
     const searchQuery = elements.inputElement.value;
     currentPage++;
     try {
-        const data = await fetchCards(searchQuery, currentPage);
+        const data = await fetchCards(searchQuery, currentPage + 1); 
         if (data.hits.length === 0) {
             elements.loadMoreBtn.classList.add('load-more-hidden');
             return;
