@@ -73,11 +73,10 @@ elements.form.addEventListener('submit', async (evt) => {
     }
 });
 
-let currentPage = 0; 
+let currentPage = 1; 
 elements.loadMoreBtn.addEventListener('click', async (evt) => {
     evt.preventDefault();
     const searchQuery = elements.inputElement.value;
-    currentPage++;
     try {
         const data = await fetchCards(searchQuery, currentPage + 1); 
         if (data.hits.length === 0) {
@@ -86,15 +85,14 @@ elements.loadMoreBtn.addEventListener('click', async (evt) => {
         }
         const newMarkup = createMarcup(data.hits);
         elements.cardsList.insertAdjacentHTML('beforeend', newMarkup);
-        if (currentPage * 40 >= data.totalHits) {
-            elements.loadMoreBtn.classList.remove('load-more-hidden');
-        }
-        if (!(currentPage * 40 >= data.totalHits)) {
+        if ((currentPage + 1) * 40 >= data.totalHits) {
             elements.loadMoreBtn.classList.add('load-more-hidden');
             Notiflix.Notify.failure(
                 "We're sorry, but you've reached the end of search results.",
                 { timeout: 5000, userIcon: false }
             );
+        } else {
+            currentPage++; 
         }
     } catch (error) {
         console.error(error);
